@@ -23,6 +23,10 @@ finalizaAlocador:
     pushq   %rbp
     movq    %rsp, %rbp
 
+    movq    $12, %rax
+    movq    INICIO_HEAP, %rdi
+    syscall
+
     popq   %rbp
     ret
 

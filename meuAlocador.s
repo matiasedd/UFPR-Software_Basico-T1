@@ -2,6 +2,8 @@
     TOPO_HEAP: .quad 0
 	INICIO_HEAP: .quad 0
 
+    VAZIO: .string "<vazio>\n"
+
 .section .text
 .globl iniciaAlocador, finalizaAlocador, liberaMem, alocaMem, imprimeMapa
 
@@ -46,7 +48,17 @@ alocaMem:
 
 imprimeMapa:
     pushq   %rbp
-
     movq    %rsp, %rbp
+
+    movq    INICIO_HEAP, %r13
+    movq    TOPO_HEAP, %r14
+
+    cmpq    %r13, %r14
+    je      imprimeVazio
+
+    imprimeVazio:
+        movq $VAZIO, %rdi
+        call printf
+
     popq   %rbp
     ret

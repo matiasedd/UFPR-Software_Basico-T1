@@ -38,9 +38,9 @@ alocaMem:
 	movq	%rdi, %rbx						# Armazena o parâmetro (num_bytes) em %rbx
 
 	movq	$0, %r8							# Armazena o espaço alocado destinado para a Heap
-	movq	$0, %r9							# Armazena o menor valor maior ou igual ao solicitado (Best Fit)
+	movq	$0, %r9							# Armazena o tamanho do bloco candidato à Best Fit
+	movq	$0, %r15						# Armazena o endereço do bloco candidato à Best Fit
 	movq	$0, %r14						# Variável auxiliar que sinaliza que existe um espaço disponível
-	movq	$0, %r15						# Armazena o endereço com espaço disponível
 
 	movq	INICIO_HEAP, %rcx
 	movq	TOPO_HEAP, %rdx 
@@ -62,7 +62,7 @@ alocaMem:
 		je		atualizaEndereco 			# Se sim, inicializa a variavel com o primeiro valor menor ou igual ao tamanho solicitado
 
 		cmpq	%r13, %r9 					# Compara o menor valor armazenado com o tamanho do bloco
-		jl		proximoBloco 				# O valor disponivel não é o suficiente, buscar o proximo bloco	
+		jl		proximoBloco
 		
 	
 	atualizaEndereco:

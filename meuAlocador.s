@@ -55,14 +55,14 @@ alocaMem:
 		cmpq	$1, %r12					# Verifica se o bloco esta ocupado
 		je		proximoBloco 				# Se sim, busca o proximo bloco
 
-		cmpq	%rbx, %r13					# Verifica se o tamanho do bloco é menor ou igual ao tamanho solicitado
-	    jle		proximoBloco 				# Se sim, busca o proximo bloco
+		cmpq	%rbx, %r13					# Verifica se o tamanho do bloco é menor que o tamanho solicitado
+	    jl		proximoBloco 				# Se sim, busca o proximo bloco
 
-		cmpq $0, %r9 						# Verificação inicial: Verifica se %r9 (menor valor maior ou igual ao solicitado) não foi inicializa
-		je atualizaEndereco 				# Se sim, inicializa a variavel com o primeiro valor menor ou igual ao tamanho solicitado
+		cmpq	$0, %r9 					# Verificação inicial: Verifica se %r9 (menor valor maior ou igual ao solicitado) não foi inicializa
+		je		atualizaEndereco 			# Se sim, inicializa a variavel com o primeiro valor menor ou igual ao tamanho solicitado
 
-		cmpq %r13, %r9 						# Compara o menor valor armazenado com o tamanho do bloco
-		jl proximoBloco 					# O valor disponivel não é o suficiente, buscar o proximo bloco	
+		cmpq	%r13, %r9 					# Compara o menor valor armazenado com o tamanho do bloco
+		jl		proximoBloco 				# O valor disponivel não é o suficiente, buscar o proximo bloco	
 		
 	
 	atualizaEndereco:
@@ -74,36 +74,36 @@ alocaMem:
 
 	alocaEndereco:
 		movq	$1, 0(%r15) 				# Altera o status do bloco para "Ocupado"
+		movq	%r9, 8(%r15)				# Atribui o tamanho do bloco
 		addq	$16, %r15					# Adiciona 16 bytes no endereço
 
 		movq	%r15, %rax					# Retorna o endereço do espaço disponível				
 		jmp		fimAlocaMem
 
 	proximoBloco:
-		addq %r13, %rcx  					#Adiciona o tamanho do espaço no endereço de rcx 
-		addq  $16, %rcx 					#Adiciona 16 bytes no endereço de rcx para ir até o próximo bloco
-		jmp percorreHeap
+		addq 	$16, %rcx 					#Adiciona 16 bytes no endereço de rcx para ir até o próximo bloco
+		addq	%r13, %rcx 					#Adiciona o tamanho do espaço no endereço de rcx 
+		jmp		percorreHeap
 	
 	verificaSeDisponivel:
-		cmpq $FLAG, %r14					# Verifica se foi encontrado um bloco disponível (%r14 != 0)			
-		je alocaEndereco
+		cmpq	$FLAG, %r14					# Verifica se foi encontrado um bloco disponível (%r14 != 0)			
+		je		alocaEndereco
 
 	
 	aloca:
-		movq AUX_HEAP, %rdi 				# Calcula o espaço corrente disponivel na Heap
-		subq TOPO_HEAP, %rdi  		
-		movq %rdi, DISPONIVEL    	
+		movq	AUX_HEAP, %rdi 				# Calcula o espaço corrente disponivel na Heap
+		subq	TOPO_HEAP, %rdi  		
+		movq	%rdi, DISPONIVEL    	
 
-		cmpq %rbx, DISPONIVEL 				# Verifica se o espaço disponível é menor do que o soliciado
-		jl expandeHeap						# Se sim, é necessário expandir a Heap						
+		cmpq	%rbx, DISPONIVEL			# Verifica se o espaço disponível é menor do que o soliciado
+		jl		expandeHeap					# Se sim, é necessário expandir a Heap						
 		
-		movq %rbx, %r10				
-		movq %r10, %r11				
-		addq  $16, %r11						# Adiciona 16 bytes (informações gerenciais)
-		addq TOPO_HEAP, %r11				#Soma o tamanho da Heap com o valor "alocado"
+		movq	%rbx, %r10				
+		movq	%r10, %r11				
+		addq 	$16, %r11					# Adiciona 16 bytes (informações gerenciais)
+		addq	TOPO_HEAP, %r11				#Soma o tamanho da Heap com o valor "alocado"
 
-		
-		movq %r11, TOPO_HEAP				#Atualiza valor do topo da heap com r11
+		movq	%r11, TOPO_HEAP				#Atualiza valor do topo da heap com r11
 
 		movq	$1, (%rcx)					# Altera o status do bloco para "Ocupado"
 		addq	$8,  %rcx			
@@ -114,7 +114,7 @@ alocaMem:
 		jmp		fimAlocaMem
 
 	expandeHeap:
-		addq	$4096, %r8					# Aloca múltiplos de 4096 bytes (4K) 
+		addq	$32, %r8					# Aloca múltiplos de 4096 bytes (4K) 
 		cmpq	%rbx, %r8					# Verifica se o espaço alocado é menor que o valor solicitado
 		jle		expandeHeap					# Se verdadeiro, retorna e aloca mais 4096 bytes (4k)
 
@@ -152,10 +152,8 @@ liberaMem:
 
 	movq %rdi, %rbx 						# Armazena a variável a ser desalocada
 
-	subq $16, %rbx 							#Remove o ponteiro 
+	subq $16, %rbx 							#Remove o ponteiro
 	movq $0, (%rbx) 						# Altera o status do bloco para "Livre"
-
-	movq %rbx, %rax 				
 
 	popq %rbp
 	ret
@@ -231,6 +229,15 @@ imprimeMapa:
 			jmp imprime_livre
 
 		saida_padrao:
+			pushq %rcx
+			pushq %rbx
+	
+			mov $break_line, %rdi 				# Imprime '\n'
+			call printf
+	
+			popq %rbx
+			popq %rcx
+
 			addq %r15, %r13
 			addq $16, %r13
 			jmp inicio_while
